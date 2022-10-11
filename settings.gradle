@@ -1,0 +1,7 @@
+pluginManagement {
+    plugins {
+        id 'com.diffplug.spotless' version '6.8.0'
+    }
+}
+rootProject.name = 'accomodation-api'
+include 'domain'

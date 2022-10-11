@@ -1,0 +1,37 @@
+plugins {
+    id 'com.diffplug.spotless'
+}
+subprojects {
+    group 'mpelc.example'
+    version '1.0-SNAPSHOT'
+
+    apply plugin: 'java-library'
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+
+    compileJava.dependsOn spotlessApply
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    }
+    repositories {
+        mavenCentral()
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}
+repositories {
+    mavenCentral()
+}
+
+spotless {
+    java {
+        target '**/*.java'
+        googleJavaFormat()
+    }
+}
