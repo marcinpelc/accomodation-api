@@ -31,7 +31,8 @@ class BookingServiceTest {
   @Test
   void rankGuestsTest() {
     // given
-    when(rulesService.getPremiumPricePredicate()).thenReturn(v -> v >= 100);
+    when(rulesService.getPremiumPricePredicate())
+        .thenReturn(v -> v.compareTo(BigDecimal.valueOf(100)) >= 0);
     List<BigDecimal> guestList = createDefaultGuestList();
     // when
     RankedGuests result = bookingService.rankGuests(guestList);

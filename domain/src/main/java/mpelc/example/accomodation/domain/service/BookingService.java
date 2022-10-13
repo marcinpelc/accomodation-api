@@ -2,6 +2,8 @@ package mpelc.example.accomodation.domain.service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import mpelc.example.accomodation.domain.model.Accommodation;
@@ -22,7 +24,12 @@ public class BookingService implements CalculateBookingUseCase {
   }
 
   RankedGuests rankGuests(@NonNull List<BigDecimal> guestsList) {
-    // TODO: implement
-    throw new IllegalStateException("Not implemented");
+    final Map<Boolean, List<BigDecimal>> partitionedGuests =
+        guestsList.stream()
+            .collect(Collectors.partitioningBy(rulesService.getPremiumPricePredicate()));
+    return RankedGuests.builder()
+        .economy(partitionedGuests.get(Boolean.FALSE).size())
+        .premium(partitionedGuests.get(Boolean.TRUE).size())
+        .build();
   }
 }

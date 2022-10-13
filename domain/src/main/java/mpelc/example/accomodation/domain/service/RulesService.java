@@ -1,12 +1,13 @@
 package mpelc.example.accomodation.domain.service;
 
+import java.math.BigDecimal;
 import java.util.function.Predicate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RulesService {
 
-  Predicate<Integer> getPremiumPricePredicate() {
-    return v -> v >= 100;
+  Predicate<BigDecimal> getPremiumPricePredicate() {
+    return v -> v.compareTo(BigDecimal.valueOf(100)) >= 0;
   }
 }
