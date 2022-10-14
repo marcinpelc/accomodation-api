@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import mpelc.example.accomodation.domain.model.Accommodation;
+import mpelc.example.accomodation.domain.model.Booking;
 import mpelc.example.accomodation.domain.model.RankedGuests;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -29,6 +31,84 @@ class BookingServiceTest {
   }
 
   @Test
+  void calculateBookingTest_GivenOneEconomyGuestOneEconomyRoom() {
+    // given
+    RankedGuests rankedGuests = createRankedGuests(1, 0);
+    Accommodation accommodation = createAccommodation(1, 0);
+    // when
+    Booking result = bookingService.calculateBooking(accommodation, rankedGuests);
+    // then
+    assertEquals(1, result.getBookedEconomy());
+    assertEquals(0, result.getBookedPremium());
+    assertEquals(0, result.getBookedPremiumByEconomy());
+  }
+
+  @Test
+  void calculateBookingTest_GivenOneEconomyGuestOnePremiumRoom() {
+    // given
+    RankedGuests rankedGuests = createRankedGuests(1, 0);
+    Accommodation accommodation = createAccommodation(0, 1);
+    // when
+    Booking result = bookingService.calculateBooking(accommodation, rankedGuests);
+    // then
+    assertEquals(0, result.getBookedEconomy());
+    assertEquals(0, result.getBookedPremium());
+    assertEquals(1, result.getBookedPremiumByEconomy());
+  }
+
+  @Test
+  void calculateBookingTest_GivenTwoPremiumGuestOnePremiumRoom() {
+    // given
+    RankedGuests rankedGuests = createRankedGuests(0, 2);
+    Accommodation accommodation = createAccommodation(1, 1);
+    // when
+    Booking result = bookingService.calculateBooking(accommodation, rankedGuests);
+    // then
+    assertEquals(0, result.getBookedEconomy());
+    assertEquals(1, result.getBookedPremium());
+    assertEquals(0, result.getBookedPremiumByEconomy());
+  }
+
+  @Test
+  void calculateBookingTest_GivenThreeEconomyGuestOnePremiumRoomOneEconomyRoom() {
+    // given
+    RankedGuests rankedGuests = createRankedGuests(3, 0);
+    Accommodation accommodation = createAccommodation(1, 1);
+    // when
+    Booking result = bookingService.calculateBooking(accommodation, rankedGuests);
+    // then
+    assertEquals(1, result.getBookedEconomy());
+    assertEquals(0, result.getBookedPremium());
+    assertEquals(1, result.getBookedPremiumByEconomy());
+  }
+
+  @Test
+  void calculateBookingTest_GivenThreeEconomyGuestOnePremiumGuestOnePremiumRoomOneEconomyRoom() {
+    // given
+    RankedGuests rankedGuests = createRankedGuests(3, 1);
+    Accommodation accommodation = createAccommodation(1, 1);
+    // when
+    Booking result = bookingService.calculateBooking(accommodation, rankedGuests);
+    // then
+    assertEquals(1, result.getBookedEconomy());
+    assertEquals(1, result.getBookedPremium());
+    assertEquals(0, result.getBookedPremiumByEconomy());
+  }
+
+  @Test
+  void calculateBookingTest_GivenThreeEconomyGuestOnePremiumGuestTwoPremiumRoomOneEconomyRoom() {
+    // given
+    RankedGuests rankedGuests = createRankedGuests(3, 1);
+    Accommodation accommodation = createAccommodation(1, 2);
+    // when
+    Booking result = bookingService.calculateBooking(accommodation, rankedGuests);
+    // then
+    assertEquals(1, result.getBookedEconomy());
+    assertEquals(1, result.getBookedPremium());
+    assertEquals(1, result.getBookedPremiumByEconomy());
+  }
+
+  @Test
   void rankGuestsTest() {
     // given
     when(rulesService.getPremiumPricePredicate())
@@ -39,6 +119,14 @@ class BookingServiceTest {
     // then
     assertEquals(4, result.getEconomy());
     assertEquals(6, result.getPremium());
+  }
+
+  private Accommodation createAccommodation(int economy, int premium) {
+    return Accommodation.builder().economy(economy).premium(premium).build();
+  }
+
+  private RankedGuests createRankedGuests(int economy, int premium) {
+    return RankedGuests.builder().economy(economy).premium(premium).build();
   }
 
   private List<BigDecimal> createDefaultGuestList() {
