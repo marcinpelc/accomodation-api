@@ -8,6 +8,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import mpelc.example.accomodation.domain.model.Accommodation;
 import mpelc.example.accomodation.domain.model.Booking;
+import mpelc.example.accomodation.domain.model.BookingWithIncome;
 import mpelc.example.accomodation.domain.model.RankedGuests;
 import mpelc.example.accomodation.domain.port.in.CalculateBookingUseCase;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,11 @@ public class BookingService implements CalculateBookingUseCase {
   private final RulesService rulesService;
 
   @Override
-  public Booking calculateBooking(Accommodation accommodation) {
+  public BookingWithIncome calculateBookingWithIncome(Accommodation accommodation) {
+    throw new IllegalStateException("Not implemented");
+  }
+
+  Booking calculateBooking(Accommodation accommodation, RankedGuests rankedGuests) {
     throw new IllegalStateException("Not implemented");
   }
 

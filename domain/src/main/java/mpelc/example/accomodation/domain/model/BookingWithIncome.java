@@ -1,6 +1,9 @@
 package mpelc.example.accomodation.domain.model;
 
-public class Booking {
+import java.math.BigDecimal;
+
+public class BookingWithIncome {
   private Integer bookedEconomy;
   private Integer bookedPremium;
+  private BigDecimal income;
 }

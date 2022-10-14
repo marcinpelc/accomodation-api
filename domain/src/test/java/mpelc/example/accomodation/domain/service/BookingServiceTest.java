@@ -24,7 +24,7 @@ class BookingServiceTest {
 
   @Test
   @Disabled
-  void calculateBookingTest() {
+  void calculateBookingWithIncomeTest() {
     // TODO: implement tests
   }
 
