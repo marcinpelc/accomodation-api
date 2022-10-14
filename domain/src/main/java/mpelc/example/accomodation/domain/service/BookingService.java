@@ -1,5 +1,9 @@
 package mpelc.example.accomodation.domain.service;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import mpelc.example.accomodation.domain.model.Accommodation;
@@ -8,11 +12,6 @@ import mpelc.example.accomodation.domain.model.BookingWithIncome;
 import mpelc.example.accomodation.domain.model.RankedGuests;
 import mpelc.example.accomodation.domain.port.in.CalculateBookingUseCase;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +38,7 @@ public class BookingService implements CalculateBookingUseCase {
         && premiumRoomsLeftAfterPremiumAccommodation > 0) {
       int economyGuestsNotBooked = rankedGuests.getEconomy() - accommodation.getEconomy();
       economyGuestsInPremiumRooms =
-              Math.min(economyGuestsNotBooked, premiumRoomsLeftAfterPremiumAccommodation);
+          Math.min(economyGuestsNotBooked, premiumRoomsLeftAfterPremiumAccommodation);
     }
     return Booking.builder()
         .bookedEconomy(accommodation.getEconomy() - economyRoomsLeftAfterEconomyAccommodation)
