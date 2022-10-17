@@ -1,11 +1,13 @@
 plugins {
     id 'com.diffplug.spotless'
+    id 'jacoco'
 }
 subprojects {
     group 'mpelc.example'
     version '1.0-SNAPSHOT'
 
     apply plugin: 'java-library'
+    apply plugin: 'jacoco'
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(17)
@@ -28,6 +30,10 @@ subprojects {
 
     test {
         useJUnitPlatform()
+        finalizedBy jacocoTestReport
+    }
+    jacocoTestReport {
+        dependsOn test
     }
 }
 repositories {
