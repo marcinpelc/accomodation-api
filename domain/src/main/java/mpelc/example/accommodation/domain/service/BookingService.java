@@ -1,4 +1,4 @@
-package mpelc.example.accomodation.domain.service;
+package mpelc.example.accommodation.domain.service;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -10,11 +10,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import mpelc.example.accomodation.domain.model.Accommodation;
-import mpelc.example.accomodation.domain.model.Booking;
-import mpelc.example.accomodation.domain.model.BookingWithIncome;
-import mpelc.example.accomodation.domain.model.RankedGuests;
-import mpelc.example.accomodation.domain.port.in.CalculateBookingUseCase;
+import mpelc.example.accommodation.domain.model.Accommodation;
+import mpelc.example.accommodation.domain.model.Booking;
+import mpelc.example.accommodation.domain.model.BookingWithIncome;
+import mpelc.example.accommodation.domain.model.RankedGuests;
+import mpelc.example.accommodation.domain.port.in.CalculateBookingUseCase;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,7 +25,15 @@ public class BookingService implements CalculateBookingUseCase {
 
   @Override
   public BookingWithIncome calculateBookingWithIncome(Accommodation accommodation) {
-    throw new IllegalStateException("Not implemented");
+    final List<BigDecimal> guestList = getGuestList();
+    Booking booking = calculateBooking(accommodation, rankGuests(guestList));
+    BigDecimal income =
+        calculateIncome(booking, guestList, rulesService.getPremiumPricePredicate());
+    return BookingWithIncome.builder()
+        .income(income)
+        .bookedEconomy(booking.getBookedEconomy())
+        .bookedPremium(booking.getBookedPremium())
+        .build();
   }
 
   BigDecimal calculateIncome(
@@ -105,5 +113,11 @@ public class BookingService implements CalculateBookingUseCase {
         .economy(partitionedGuests.get(Boolean.FALSE).size())
         .premium(partitionedGuests.get(Boolean.TRUE).size())
         .build();
+  }
+
+  private List<BigDecimal> getGuestList() {
+    return Stream.of("23", "45", "155", "374", "22", "99.99", "100", "101", "115", "209")
+        .map(BigDecimal::new)
+        .collect(Collectors.toList());
   }
 }

@@ -1,4 +1,4 @@
-package mpelc.example.accomodation.domain.service;
+package mpelc.example.accommodation.domain.service;
 
 import java.math.BigDecimal;
 import java.util.function.Predicate;

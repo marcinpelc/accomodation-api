@@ -1,4 +1,4 @@
-package mpelc.example.accomodation.domain.service;
+package mpelc.example.accommodation.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import mpelc.example.accomodation.domain.model.Accommodation;
-import mpelc.example.accomodation.domain.model.Booking;
-import mpelc.example.accomodation.domain.model.RankedGuests;
+import mpelc.example.accommodation.domain.model.Accommodation;
+import mpelc.example.accommodation.domain.model.Booking;
+import mpelc.example.accommodation.domain.model.RankedGuests;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

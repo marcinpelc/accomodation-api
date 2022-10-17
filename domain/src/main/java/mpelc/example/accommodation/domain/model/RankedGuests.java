@@ -1,4 +1,4 @@
-package mpelc.example.accomodation.domain.model;
+package mpelc.example.accommodation.domain.model;
 
 import lombok.Builder;
 import lombok.Getter;
