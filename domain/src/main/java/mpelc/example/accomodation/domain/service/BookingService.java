@@ -1,9 +1,13 @@
 package mpelc.example.accomodation.domain.service;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import mpelc.example.accomodation.domain.model.Accommodation;
@@ -22,6 +26,52 @@ public class BookingService implements CalculateBookingUseCase {
   @Override
   public BookingWithIncome calculateBookingWithIncome(Accommodation accommodation) {
     throw new IllegalStateException("Not implemented");
+  }
+
+  BigDecimal calculateIncome(
+      Booking booking, List<BigDecimal> guestsList, Predicate<BigDecimal> isCandidatePremium) {
+    Function<Stream<BigDecimal>, Stream<BigDecimal>> getEconomy =
+        (s) -> s.filter(isCandidatePremium.negate());
+
+    Function<Stream<BigDecimal>, Stream<BigDecimal>> getQualifiedForPremium =
+        (s) ->
+            getEconomy
+                .apply(s)
+                .sorted(Comparator.reverseOrder())
+                .limit(booking.getBookedPremiumByEconomy());
+
+    BigDecimal lastQualifiedForPremium =
+        getQualifiedForPremium
+            .apply(guestsList.stream())
+            .skip(
+                booking.getBookedPremiumByEconomy() > 0
+                    ? booking.getBookedPremiumByEconomy() - 1
+                    : 0)
+            .findFirst()
+            // this will not work if value is greater than Integer.MAX_VALUE
+            .orElse(BigDecimal.valueOf(Integer.MAX_VALUE));
+
+    Stream<BigDecimal> qualifiedForEconomy =
+        getEconomy
+            .apply(guestsList.stream())
+            .filter(v -> v.compareTo(lastQualifiedForPremium) < 0)
+            .limit(booking.getBookedEconomy());
+    BigDecimal earningsEconomy =
+        qualifiedForEconomy.reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+
+    BigDecimal earningsStandardEconomy =
+        getQualifiedForPremium
+            .apply(guestsList.stream())
+            .reduce(BigDecimal::add)
+            .orElse(BigDecimal.ZERO);
+
+    BigDecimal earningsStandard = earningsEconomy.add(earningsStandardEconomy);
+
+    Stream<BigDecimal> premium =
+        guestsList.stream().filter(isCandidatePremium).limit(booking.getBookedPremium());
+    BigDecimal earningsPremium = premium.reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+
+    return earningsStandard.add(earningsPremium);
   }
 
   Booking calculateBooking(Accommodation accommodation, RankedGuests rankedGuests) {

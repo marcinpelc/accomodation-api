@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import mpelc.example.accomodation.domain.model.Accommodation;
@@ -20,6 +21,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class BookingServiceTest {
 
+  private static final Predicate<BigDecimal> DEFAULT_PREDICATE =
+      v -> v.compareTo(BigDecimal.valueOf(100)) >= 0;
+
   @Mock private RulesService rulesService;
 
   @InjectMocks private BookingService bookingService;
@@ -28,6 +32,54 @@ class BookingServiceTest {
   @Disabled
   void calculateBookingWithIncomeTest() {
     // TODO: implement tests
+  }
+
+  @Test
+  void calculateIncomeTest() {
+    Booking booking = createBooking(1, 1, 0);
+    List<BigDecimal> guestList = createDefaultGuestList();
+    BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
+    assertEquals(178, income.doubleValue());
+  }
+
+  @Test
+  void calculateIncomeWhenAllBookedTest() {
+    Booking booking = createBooking(4, 6, 0);
+    List<BigDecimal> guestList = createDefaultGuestList();
+    BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
+    assertEquals(1243.99, income.doubleValue());
+  }
+
+  @Test
+  void calculateIncomeWhenAllBookedButTwoEconomyGuestsInPremiumTest() {
+    Booking booking = createBooking(2, 6, 2);
+    List<BigDecimal> guestList = createDefaultGuestList();
+    BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
+    assertEquals(1243.99, income.doubleValue());
+  }
+
+  @Test
+  void calculateIncomeWhenOnly4PremiumBookedTest() {
+    Booking booking = createBooking(0, 4, 0);
+    List<BigDecimal> guestList = createDefaultGuestList();
+    BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
+    assertEquals(730, income.doubleValue());
+  }
+
+  @Test
+  void calculateIncomeWhenOnly3EconomyBookedTest() {
+    Booking booking = createBooking(3, 0, 0);
+    List<BigDecimal> guestList = createDefaultGuestList();
+    BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
+    assertEquals(90, income.doubleValue());
+  }
+
+  @Test
+  void calculateIncomeWhenNoneBookedTest() {
+    Booking booking = createBooking(0, 0, 0);
+    List<BigDecimal> guestList = createDefaultGuestList();
+    BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
+    assertEquals(0, income.doubleValue());
   }
 
   @Test
@@ -111,14 +163,21 @@ class BookingServiceTest {
   @Test
   void rankGuestsTest() {
     // given
-    when(rulesService.getPremiumPricePredicate())
-        .thenReturn(v -> v.compareTo(BigDecimal.valueOf(100)) >= 0);
+    when(rulesService.getPremiumPricePredicate()).thenReturn(DEFAULT_PREDICATE);
     List<BigDecimal> guestList = createDefaultGuestList();
     // when
     RankedGuests result = bookingService.rankGuests(guestList);
     // then
     assertEquals(4, result.getEconomy());
     assertEquals(6, result.getPremium());
+  }
+
+  private Booking createBooking(int economy, int premium, int economyInPremium) {
+    return Booking.builder()
+        .bookedEconomy(economy)
+        .bookedPremium(premium)
+        .bookedPremiumByEconomy(economyInPremium)
+        .build();
   }
 
   private Accommodation createAccommodation(int economy, int premium) {
