@@ -9,5 +9,6 @@ import lombok.Data;
 public class BookingWithIncome {
   private Integer bookedEconomy;
   private Integer bookedPremium;
-  private BigDecimal income;
+  private BigDecimal incomeEconomy;
+  private BigDecimal incomePremium;
 }

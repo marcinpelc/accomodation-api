@@ -8,10 +8,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import mpelc.example.accommodation.domain.model.Accommodation;
-import mpelc.example.accommodation.domain.model.Booking;
-import mpelc.example.accommodation.domain.model.BookingWithIncome;
-import mpelc.example.accommodation.domain.model.RankedGuests;
+import mpelc.example.accommodation.domain.model.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,19 +28,39 @@ class BookingServiceTest {
 
   @InjectMocks private BookingService bookingService;
 
+  //  proposed test will not work, the task description does not say
+  //  that customers should be queued by the amount they are willing to pay
+  //  so the order of customers is preserved
+  //  @Test
+  //  public void exampleTest1() {
+  //    when(rulesService.getPremiumPricePredicate()).thenReturn(DEFAULT_PREDICATE);
+  //    Accommodation accommodation = createAccommodation(3, 3);
+  //    BookingWithIncome bookingWithIncome =
+  // bookingService.calculateBookingWithIncome(accommodation);
+  //    assertEquals(3, bookingWithIncome.getBookedEconomy());
+  //    assertEquals(3, bookingWithIncome.getBookedPremium());
+  //    assertEquals(738, bookingWithIncome.getIncomePremium().doubleValue());
+  //    assertEquals(167.99, bookingWithIncome.getIncomeEconomy().doubleValue());
+  //  }
+
   @Test
   public void calculateBookingWithIncomeTest() {
     when(rulesService.getPremiumPricePredicate()).thenReturn(DEFAULT_PREDICATE);
     Accommodation accommodation = createAccommodation(2, 8);
     BookingWithIncome bookingWithIncome = bookingService.calculateBookingWithIncome(accommodation);
-    assertEquals(1243.99, bookingWithIncome.getIncome().doubleValue());
+    assertEquals(
+        1243.99,
+        bookingWithIncome
+            .getIncomeEconomy()
+            .add(bookingWithIncome.getIncomePremium())
+            .doubleValue());
     assertEquals(2, bookingWithIncome.getBookedEconomy());
     assertEquals(8, bookingWithIncome.getBookedPremium());
   }
 
   @Test
   public void mapToBookingWithIncomeTest() {
-    BigDecimal income = BigDecimal.ONE;
+    Income income = Income.builder().economy(BigDecimal.ONE).premium(BigDecimal.TEN).build();
     Booking booking =
         Booking.builder()
             .bookedEconomy(BOOKED_ECONOMY)
@@ -51,7 +68,8 @@ class BookingServiceTest {
             .bookedPremiumByEconomy(BOOKED_PREMIUM_BY_ECONOMY)
             .build();
     BookingWithIncome bookingWithIncome = bookingService.mapToBookingWithIncome(income, booking);
-    assertEquals(BigDecimal.ONE, bookingWithIncome.getIncome());
+    assertEquals(BigDecimal.ONE, bookingWithIncome.getIncomeEconomy());
+    assertEquals(BigDecimal.TEN, bookingWithIncome.getIncomePremium());
     assertEquals(BOOKED_ECONOMY, bookingWithIncome.getBookedEconomy());
     assertEquals(BOOKED_PREMIUM + BOOKED_PREMIUM_BY_ECONOMY, bookingWithIncome.getBookedPremium());
   }
@@ -60,48 +78,49 @@ class BookingServiceTest {
   public void calculateIncomeTest() {
     Booking booking = createBooking(1, 1, 0);
     List<BigDecimal> guestList = createDefaultGuestList();
-    BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
-    assertEquals(178, income.doubleValue());
+    Income income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
+    assertEquals(155, income.getPremium().doubleValue());
+    assertEquals(23, income.getEconomy().doubleValue());
   }
 
   @Test
   public void calculateIncomeWhenAllBookedTest() {
     Booking booking = createBooking(4, 6, 0);
     List<BigDecimal> guestList = createDefaultGuestList();
-    BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
-    assertEquals(1243.99, income.doubleValue());
+    Income income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
+    assertEquals(1243.99, income.getPremium().add(income.getEconomy()).doubleValue());
   }
 
   @Test
   public void calculateIncomeWhenAllBookedButTwoEconomyGuestsInPremiumTest() {
     Booking booking = createBooking(2, 6, 2);
     List<BigDecimal> guestList = createDefaultGuestList();
-    BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
-    assertEquals(1243.99, income.doubleValue());
+    Income income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
+    assertEquals(1243.99, income.getPremium().add(income.getEconomy()).doubleValue());
   }
 
   @Test
   public void calculateIncomeWhenOnly4PremiumBookedTest() {
     Booking booking = createBooking(0, 4, 0);
     List<BigDecimal> guestList = createDefaultGuestList();
-    BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
-    assertEquals(730, income.doubleValue());
+    Income income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
+    assertEquals(730, income.getPremium().add(income.getEconomy()).doubleValue());
   }
 
   @Test
   public void calculateIncomeWhenOnly3EconomyBookedTest() {
     Booking booking = createBooking(3, 0, 0);
     List<BigDecimal> guestList = createDefaultGuestList();
-    BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
-    assertEquals(90, income.doubleValue());
+    Income income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
+    assertEquals(90, income.getPremium().add(income.getEconomy()).doubleValue());
   }
 
   @Test
   public void calculateIncomeWhenNoneBookedTest() {
     Booking booking = createBooking(0, 0, 0);
     List<BigDecimal> guestList = createDefaultGuestList();
-    BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
-    assertEquals(0, income.doubleValue());
+    Income income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
+    assertEquals(0, income.getPremium().add(income.getEconomy()).doubleValue());
   }
 
   @Test

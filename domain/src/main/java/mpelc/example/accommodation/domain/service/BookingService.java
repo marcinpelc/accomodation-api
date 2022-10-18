@@ -10,10 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import mpelc.example.accommodation.domain.model.Accommodation;
-import mpelc.example.accommodation.domain.model.Booking;
-import mpelc.example.accommodation.domain.model.BookingWithIncome;
-import mpelc.example.accommodation.domain.model.RankedGuests;
+import mpelc.example.accommodation.domain.model.*;
 import mpelc.example.accommodation.domain.port.in.CalculateBookingUseCase;
 import org.springframework.stereotype.Service;
 
@@ -27,20 +24,20 @@ public class BookingService implements CalculateBookingUseCase {
   public BookingWithIncome calculateBookingWithIncome(Accommodation accommodation) {
     final List<BigDecimal> guestList = getGuestList();
     Booking booking = calculateBooking(accommodation, rankGuests(guestList));
-    BigDecimal income =
-        calculateIncome(booking, guestList, rulesService.getPremiumPricePredicate());
+    Income income = calculateIncome(booking, guestList, rulesService.getPremiumPricePredicate());
     return mapToBookingWithIncome(income, booking);
   }
 
-  BookingWithIncome mapToBookingWithIncome(BigDecimal income, Booking booking) {
+  BookingWithIncome mapToBookingWithIncome(Income income, Booking booking) {
     return BookingWithIncome.builder()
-        .income(income)
+        .incomeEconomy(income.getEconomy())
+        .incomePremium(income.getPremium())
         .bookedEconomy(booking.getBookedEconomy())
         .bookedPremium(booking.getBookedPremium() + booking.getBookedPremiumByEconomy())
         .build();
   }
 
-  BigDecimal calculateIncome(
+  Income calculateIncome(
       Booking booking, List<BigDecimal> guestsList, Predicate<BigDecimal> isCandidatePremium) {
     Function<Stream<BigDecimal>, Stream<BigDecimal>> getEconomy =
         (s) -> s.filter(isCandidatePremium.negate());
@@ -68,7 +65,7 @@ public class BookingService implements CalculateBookingUseCase {
             .apply(guestsList.stream())
             .filter(v -> v.compareTo(lastQualifiedForPremium) < 0)
             .limit(booking.getBookedEconomy());
-    BigDecimal earningsEconomy =
+    BigDecimal earningsEconomyOnly =
         qualifiedForEconomy.reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
 
     BigDecimal earningsStandardEconomy =
@@ -77,13 +74,13 @@ public class BookingService implements CalculateBookingUseCase {
             .reduce(BigDecimal::add)
             .orElse(BigDecimal.ZERO);
 
-    BigDecimal earningsStandard = earningsEconomy.add(earningsStandardEconomy);
+    BigDecimal earningsEconomy = earningsEconomyOnly.add(earningsStandardEconomy);
 
     Stream<BigDecimal> premium =
         guestsList.stream().filter(isCandidatePremium).limit(booking.getBookedPremium());
     BigDecimal earningsPremium = premium.reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
 
-    return earningsStandard.add(earningsPremium);
+    return Income.builder().economy(earningsEconomy).premium(earningsPremium).build();
   }
 
   Booking calculateBooking(Accommodation accommodation, RankedGuests rankedGuests) {
