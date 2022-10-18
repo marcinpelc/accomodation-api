@@ -29,10 +29,14 @@ public class BookingService implements CalculateBookingUseCase {
     Booking booking = calculateBooking(accommodation, rankGuests(guestList));
     BigDecimal income =
         calculateIncome(booking, guestList, rulesService.getPremiumPricePredicate());
+    return mapToBookingWithIncome(income, booking);
+  }
+
+  BookingWithIncome mapToBookingWithIncome(BigDecimal income, Booking booking) {
     return BookingWithIncome.builder()
         .income(income)
         .bookedEconomy(booking.getBookedEconomy())
-        .bookedPremium(booking.getBookedPremium())
+        .bookedPremium(booking.getBookedPremium() + booking.getBookedPremiumByEconomy())
         .build();
   }
 

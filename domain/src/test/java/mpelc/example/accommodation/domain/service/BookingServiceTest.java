@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import mpelc.example.accommodation.domain.model.Accommodation;
 import mpelc.example.accommodation.domain.model.Booking;
+import mpelc.example.accommodation.domain.model.BookingWithIncome;
 import mpelc.example.accommodation.domain.model.RankedGuests;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,19 +23,41 @@ class BookingServiceTest {
 
   private static final Predicate<BigDecimal> DEFAULT_PREDICATE =
       v -> v.compareTo(BigDecimal.valueOf(100)) >= 0;
+  public static final int BOOKED_ECONOMY = 2;
+  public static final int BOOKED_PREMIUM = 3;
+  public static final int BOOKED_PREMIUM_BY_ECONOMY = 1;
 
   @Mock private RulesService rulesService;
 
   @InjectMocks private BookingService bookingService;
 
   @Test
-  @Disabled
-  void calculateBookingWithIncomeTest() {
-    // TODO: implement tests
+  public void calculateBookingWithIncomeTest() {
+    when(rulesService.getPremiumPricePredicate()).thenReturn(DEFAULT_PREDICATE);
+    Accommodation accommodation = createAccommodation(2, 8);
+    BookingWithIncome bookingWithIncome = bookingService.calculateBookingWithIncome(accommodation);
+    assertEquals(1243.99, bookingWithIncome.getIncome().doubleValue());
+    assertEquals(2, bookingWithIncome.getBookedEconomy());
+    assertEquals(8, bookingWithIncome.getBookedPremium());
   }
 
   @Test
-  void calculateIncomeTest() {
+  public void mapToBookingWithIncomeTest() {
+    BigDecimal income = BigDecimal.ONE;
+    Booking booking =
+        Booking.builder()
+            .bookedEconomy(BOOKED_ECONOMY)
+            .bookedPremium(BOOKED_PREMIUM)
+            .bookedPremiumByEconomy(BOOKED_PREMIUM_BY_ECONOMY)
+            .build();
+    BookingWithIncome bookingWithIncome = bookingService.mapToBookingWithIncome(income, booking);
+    assertEquals(BigDecimal.ONE, bookingWithIncome.getIncome());
+    assertEquals(BOOKED_ECONOMY, bookingWithIncome.getBookedEconomy());
+    assertEquals(BOOKED_PREMIUM + BOOKED_PREMIUM_BY_ECONOMY, bookingWithIncome.getBookedPremium());
+  }
+
+  @Test
+  public void calculateIncomeTest() {
     Booking booking = createBooking(1, 1, 0);
     List<BigDecimal> guestList = createDefaultGuestList();
     BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
@@ -43,7 +65,7 @@ class BookingServiceTest {
   }
 
   @Test
-  void calculateIncomeWhenAllBookedTest() {
+  public void calculateIncomeWhenAllBookedTest() {
     Booking booking = createBooking(4, 6, 0);
     List<BigDecimal> guestList = createDefaultGuestList();
     BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
@@ -51,7 +73,7 @@ class BookingServiceTest {
   }
 
   @Test
-  void calculateIncomeWhenAllBookedButTwoEconomyGuestsInPremiumTest() {
+  public void calculateIncomeWhenAllBookedButTwoEconomyGuestsInPremiumTest() {
     Booking booking = createBooking(2, 6, 2);
     List<BigDecimal> guestList = createDefaultGuestList();
     BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
@@ -59,7 +81,7 @@ class BookingServiceTest {
   }
 
   @Test
-  void calculateIncomeWhenOnly4PremiumBookedTest() {
+  public void calculateIncomeWhenOnly4PremiumBookedTest() {
     Booking booking = createBooking(0, 4, 0);
     List<BigDecimal> guestList = createDefaultGuestList();
     BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
@@ -67,7 +89,7 @@ class BookingServiceTest {
   }
 
   @Test
-  void calculateIncomeWhenOnly3EconomyBookedTest() {
+  public void calculateIncomeWhenOnly3EconomyBookedTest() {
     Booking booking = createBooking(3, 0, 0);
     List<BigDecimal> guestList = createDefaultGuestList();
     BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
@@ -75,7 +97,7 @@ class BookingServiceTest {
   }
 
   @Test
-  void calculateIncomeWhenNoneBookedTest() {
+  public void calculateIncomeWhenNoneBookedTest() {
     Booking booking = createBooking(0, 0, 0);
     List<BigDecimal> guestList = createDefaultGuestList();
     BigDecimal income = bookingService.calculateIncome(booking, guestList, DEFAULT_PREDICATE);
@@ -83,7 +105,7 @@ class BookingServiceTest {
   }
 
   @Test
-  void calculateBookingTest_GivenOneEconomyGuestOneEconomyRoom() {
+  public void calculateBookingTest_GivenOneEconomyGuestOneEconomyRoom() {
     // given
     RankedGuests rankedGuests = createRankedGuests(1, 0);
     Accommodation accommodation = createAccommodation(1, 0);
@@ -96,7 +118,7 @@ class BookingServiceTest {
   }
 
   @Test
-  void calculateBookingTest_GivenOneEconomyGuestOnePremiumRoom() {
+  public void calculateBookingTest_GivenOneEconomyGuestOnePremiumRoom() {
     // given
     RankedGuests rankedGuests = createRankedGuests(1, 0);
     Accommodation accommodation = createAccommodation(0, 1);
@@ -109,7 +131,7 @@ class BookingServiceTest {
   }
 
   @Test
-  void calculateBookingTest_GivenTwoPremiumGuestOnePremiumRoom() {
+  public void calculateBookingTest_GivenTwoPremiumGuestOnePremiumRoom() {
     // given
     RankedGuests rankedGuests = createRankedGuests(0, 2);
     Accommodation accommodation = createAccommodation(1, 1);
@@ -122,7 +144,7 @@ class BookingServiceTest {
   }
 
   @Test
-  void calculateBookingTest_GivenThreeEconomyGuestOnePremiumRoomOneEconomyRoom() {
+  public void calculateBookingTest_GivenThreeEconomyGuestOnePremiumRoomOneEconomyRoom() {
     // given
     RankedGuests rankedGuests = createRankedGuests(3, 0);
     Accommodation accommodation = createAccommodation(1, 1);
@@ -135,7 +157,8 @@ class BookingServiceTest {
   }
 
   @Test
-  void calculateBookingTest_GivenThreeEconomyGuestOnePremiumGuestOnePremiumRoomOneEconomyRoom() {
+  public void
+      calculateBookingTest_GivenThreeEconomyGuestOnePremiumGuestOnePremiumRoomOneEconomyRoom() {
     // given
     RankedGuests rankedGuests = createRankedGuests(3, 1);
     Accommodation accommodation = createAccommodation(1, 1);
@@ -148,7 +171,8 @@ class BookingServiceTest {
   }
 
   @Test
-  void calculateBookingTest_GivenThreeEconomyGuestOnePremiumGuestTwoPremiumRoomOneEconomyRoom() {
+  public void
+      calculateBookingTest_GivenThreeEconomyGuestOnePremiumGuestTwoPremiumRoomOneEconomyRoom() {
     // given
     RankedGuests rankedGuests = createRankedGuests(3, 1);
     Accommodation accommodation = createAccommodation(1, 2);
@@ -161,7 +185,7 @@ class BookingServiceTest {
   }
 
   @Test
-  void rankGuestsTest() {
+  public void rankGuestsTest() {
     // given
     when(rulesService.getPremiumPricePredicate()).thenReturn(DEFAULT_PREDICATE);
     List<BigDecimal> guestList = createDefaultGuestList();

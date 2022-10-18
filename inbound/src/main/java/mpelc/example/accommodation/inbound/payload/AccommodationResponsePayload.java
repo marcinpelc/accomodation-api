@@ -2,9 +2,9 @@ package mpelc.example.accommodation.inbound.payload;
 
 import java.math.BigDecimal;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 @Builder
 public class AccommodationResponsePayload {
   private Integer bookedEconomy;

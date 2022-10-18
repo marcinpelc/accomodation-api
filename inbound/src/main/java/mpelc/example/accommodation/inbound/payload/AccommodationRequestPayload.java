@@ -1,9 +1,9 @@
 package mpelc.example.accommodation.inbound.payload;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 @Builder
 public class AccommodationRequestPayload {
   private Integer economy;
